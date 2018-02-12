@@ -14,7 +14,7 @@ NAME = libft.a
 CC = gcc -Wall -Wextra -Werror -I $(INCLUDES_DIR)
 INCLUDES = ft_printf.h libft.h
 INCLUDES_DIR = ../includes
-# CFLAGS = -Wall -Wextra -Werror
+CFLAGS = -Wall -Wextra -Werror
 IFLAGS = -I$(INCLUDES_DIR)
 VPATH=srcs\
 	:srcs/char\
@@ -63,7 +63,7 @@ $(NAME): $(OBJS_LIBFT) $(OBJS_PRINTF) $(INCLUDES) $(MAKEFILE)
 	@ar rsc $(NAME) $(OBJS_WITH_PATH)
 
 %.o: %.c $(INCLUDES) $(MAKEFILE)
-	@printf "\r[21SH] \033[1;33mBuilding Libft\033[0m"
+	@printf "\r[21SH] \033[1;33mBuilding Libft $< \033[0m"
 	@$(CC) -o $(OBJS_PATH)/$@ -c $(CFLAGS) $(IFLAGS) $<
 
 clean:

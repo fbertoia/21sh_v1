@@ -15,12 +15,24 @@
 #include <curses.h>
 #include <fcntl.h>
 
+void handle_windowsize(int nb)
+{
+	t_21sh *data;
+
+	data = get_data_21sh();
+	ioctl(0, TIOCGWINSZ, &data->winsize);
+	dprintf(data->debug_tty, "\rwindow_size = |%d * %d|\n", data->winsize.ws_row, data->winsize.ws_col);
+}
+
 int			my_putchar(int c)
 {
 	static int	fd = 0;
+	t_21sh *data;
 
+	data = get_data_21sh();
 	if (!fd)
 		fd = open("/dev/tty", O_RDWR);
+	dprintf(data->debug_tty, "tty regular = %d, debug = %d\n", data->debug_tty, fd);
 	if (!isatty(fd))
 	{
 		ft_putstr("/dev/tty is not a valid tty.\n");
@@ -35,81 +47,81 @@ int			my_putchar(int c)
 	return (c);
 }
 
-int     check_input()
+void behaviour(t_21sh *data)
 {
-	unsigned char buffer[10];
-
-  while (1)
-  {
 	int i;
-	bzero(buffer, 6);
-	i = read(0, buffer, 10);
-    buffer[i] = 0;
-	printf("character written = [%d][%d][%d][%d]\n", (int)buffer[0], (int)buffer[1], (int)buffer[2], (int)buffer[3]);
-	tputs(tgetstr("dl", NULL), 1, my_putchar);
-  }
-  return (0);
+	t_function_call *find;
+
+	i = 0;
+	find = data->input.function_call;
+	dprintf(data->debug_tty, "find[i].key = %llu, ARROW_RIGHT = %llu\n", find[0].key, ARROW_RIGHT);
+	while ((find[i]).key)
+	{
+		if (data->input.read == find[i].key)
+		{
+			find[i].f(data);
+			break;
+		}
+		dprintf(data->debug_tty, "i = %d, find[i].key = %llu\n", i,
+		find[i].key);
+		i++;
+	}
+	// if (data->input.read == ARROW_UP)
+	// 	tputs(tgoto(tgetstr("up", NULL), 0, 0), 1, my_putchar);
+	// else if (data->input.read == ARROW_DOWN)
+	// 	tputs(tgoto(tgetstr("do", NULL), 0, 0), 1, my_putchar);
+	// else if (data->input.read == ARROW_LEFT)
+	// 	tputs(tgoto(tgetstr("le", NULL), 0, 0), 1, my_putchar);
+	// else if (data->input.read == ARROW_RIGHT)
+	// 	tputs(tgoto(tgetstr("nd", NULL), 0, 0), 1, my_putchar);
+	// else
+	// 	my_putchar((int)nb);
+}
+
+
+
+int     get_input(void)
+{
+	t_21sh	*data;
+	char *buffer;
+
+	data = get_data_21sh();
+	buffer = (char*)&data->input.read;
+	while (read(0, &data->input.read, 8))
+	{
+		dprintf(data->debug_tty, "\rbuff = [%d][%d][%d][%d][%d][%d][%d][%d], %llu\n", buffer[0],
+		buffer[1], buffer[2], buffer[3], buffer[4], buffer[5], buffer[6], buffer[7], data->input.read);
+		behaviour(data);
+		data->input.read = 0;
+	}
+	return (0);
+}
+
+void	setdebug(void)
+{
+	t_21sh *data;
+
+	data = get_data_21sh();
+	data->debug_tty = open("/dev/ttys000", O_RDWR);
 }
 
 int main(void)
 {
-	int *ptr;
-
-ptr = (int[6]){1, 2, 3, 4, 5 ,6};
-printf("ptr[4] = %d\n", ptr[4]);
-	int i;
-  	struct termios term;
-	char           *name_term;
-	char  *bp;
-
-	i = 0;
-
-	bp = NULL;
-	ft_printf("name_term = %s\n", "debut");
-	if ((name_term = getenv("TERM")) == NULL)
-		return (-1);
-	ft_printf("%[RED]name_term = %s%[NC]\n", name_term);
-	if (tgetent(bp, name_term) == ERR)
-		return (-1);
-	ft_printf("%[RED]bp = %s%[NC]\n", bp);
-		if (tcgetattr(STDIN_FILENO, &term) == -1)
-		return (-1);
-	ft_printf("%[YEL]sizeof term %ld, term.c_flag = %ld%[NC]\n", sizeof(term), sizeof(term.c_lflag));
-	term.c_lflag &= ~(ICANON);
-	term.c_lflag &= ~(ECHO);
-	term.c_lflag &= ~(VMIN);
-	term.c_cc[VTIME] = 0;
-	if (tcsetattr(0, TCSADRAIN, &term) == -1)
-		return (-1);
-	// while (1)
-	// {
-	// 	check_input();
-	// }
-
-	char buf[1024];
-	char buf2[30];
-	char *ap = buf2;
-	char *clearstr, *gotostr, *standstr, *stendstr;
-
-	clearstr = tgetstr("cl", &ap);
-gotostr = tgetstr("cm", &ap);
-printf("gotostr = %s\n", gotostr);
-standstr = tgetstr("so", &ap);
-printf("standstr = %s\n", standstr);
-stendstr = tgetstr("se", &ap);
-printf("stendstr = %s\n", stendstr);
-stendstr = tgetstr("kl", &ap);
-printf("stendstr = %s\n", stendstr);
-// tputs(clearstr, stdout);
-// tputs(tgoto(gotostr, 20, 10), stdout);
-// printf("Hello, ");
-// tputs(standstr, stdout);
-// printf("world");
-// tputs(stendstr, stdout);
-// putchar('!');
+	set_terminal();
+	setdebug();
+	signal(SIGWINCH, handle_windowsize);
+	while (1)
+	{
+		get_input();
+	}
 	return (0);
 }
+
 // Nb arg max : https://stackoverflow.com/questions/19354870/bash-command-line-and-input-limit
 //DESCRIPTION
      // The isatty() function tests whether  fildes,  an  open  file
      // descriptor, is associated with a terminal device.
+
+// It is safe to use tgoto for commands other than `cm' only if you have stored zero in BC and UP.
+
+// pourquoi `le' ne fonctionne qu'une seule fois?
