@@ -11,9 +11,7 @@
 /* ************************************************************************** */
 
 #include "sh21.h"
-#include <term.h>
-#include <curses.h>
-#include <fcntl.h>
+
 
 void handle_windowsize(int nb)
 {
@@ -24,29 +22,6 @@ void handle_windowsize(int nb)
 	dprintf(data->debug_tty, "\rwindow_size = |%d * %d|\n", data->winsize.ws_row, data->winsize.ws_col);
 }
 
-int			my_putchar(int c)
-{
-	static int	fd = 0;
-	t_21sh *data;
-
-	data = get_data_21sh();
-	if (!fd)
-		fd = open("/dev/tty", O_RDWR);
-	dprintf(data->debug_tty, "tty regular = %d, debug = %d\n", data->debug_tty, fd);
-	if (!isatty(fd))
-	{
-		ft_putstr("/dev/tty is not a valid tty.\n");
-		exit(EXIT_FAILURE);
-	}
-	if (c == -1)
-	{
-		close(fd);
-		return (c);
-	}
-	write(fd, &c, 1);
-	return (c);
-}
-
 void behaviour(t_21sh *data)
 {
 	int i;
@@ -54,31 +29,23 @@ void behaviour(t_21sh *data)
 
 	i = 0;
 	find = data->input.function_call;
-	dprintf(data->debug_tty, "find[i].key = %llu, ARROW_RIGHT = %llu\n", find[0].key, ARROW_RIGHT);
-	while ((find[i]).key)
+	if (ft_isprint(data->input.read))
+		print_char(data);
+	else
 	{
-		if (data->input.read == find[i].key)
+		while (find[i].key)
 		{
-			find[i].f(data);
-			break;
+			if (data->input.read == find[i].key)
+			{
+				find[i].f(data);
+				break;
+			}
+			dprintf(data->debug_tty, "i = %d, find[i].key = %llu, buf_size = %d\n", i,
+			find[i].key, data->input.buf_size);
+			i++;
 		}
-		dprintf(data->debug_tty, "i = %d, find[i].key = %llu\n", i,
-		find[i].key);
-		i++;
 	}
-	// if (data->input.read == ARROW_UP)
-	// 	tputs(tgoto(tgetstr("up", NULL), 0, 0), 1, my_putchar);
-	// else if (data->input.read == ARROW_DOWN)
-	// 	tputs(tgoto(tgetstr("do", NULL), 0, 0), 1, my_putchar);
-	// else if (data->input.read == ARROW_LEFT)
-	// 	tputs(tgoto(tgetstr("le", NULL), 0, 0), 1, my_putchar);
-	// else if (data->input.read == ARROW_RIGHT)
-	// 	tputs(tgoto(tgetstr("nd", NULL), 0, 0), 1, my_putchar);
-	// else
-	// 	my_putchar((int)nb);
 }
-
-
 
 int     get_input(void)
 {
@@ -89,20 +56,12 @@ int     get_input(void)
 	buffer = (char*)&data->input.read;
 	while (read(0, &data->input.read, 8))
 	{
-		dprintf(data->debug_tty, "\rbuff = [%d][%d][%d][%d][%d][%d][%d][%d], %llu\n", buffer[0],
-		buffer[1], buffer[2], buffer[3], buffer[4], buffer[5], buffer[6], buffer[7], data->input.read);
+		dprintf(data->debug_tty, "\rread = %llu, buf = %s, cur_pos = %d\n", data->input.read,
+		data->input.buf, data->input.cur_pos);
 		behaviour(data);
 		data->input.read = 0;
 	}
 	return (0);
-}
-
-void	setdebug(void)
-{
-	t_21sh *data;
-
-	data = get_data_21sh();
-	data->debug_tty = open("/dev/ttys000", O_RDWR);
 }
 
 int main(void)

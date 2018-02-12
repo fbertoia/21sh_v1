@@ -14,12 +14,19 @@
 
 void 	function_call_initialize(t_21sh *data)
 {
-	data->input.function_call = (t_function_call[2]){
+	static t_function_call ptr[] = (t_function_call[])
+	{
 		{ARROW_RIGHT, ft_arrow_right},
 		{0, NULL}
 	};
+	data->input.function_call = ptr;
 }
 
+void 	buf_initialize(t_21sh *data)
+{
+	data->input.buf_size = BUFF_SIZE_21SH;
+	data->input.buf = ft_strnew(BUFF_SIZE_21SH);
+}
 
 t_21sh	*get_data_21sh(void)
 {
@@ -27,5 +34,7 @@ t_21sh	*get_data_21sh(void)
 
 	if (!data.input.function_call)
 		function_call_initialize(&data);
+	if (!data.input.buf)
+		buf_initialize(&data);
 	return (&data);
 }

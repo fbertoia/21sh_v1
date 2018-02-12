@@ -18,7 +18,6 @@
 # include <unistd.h>
 # include <string.h>
 # include <stdio.h>
-# include <sys/wait.h>
 # include <sys/stat.h>
 # include "libft.h"
 # include <ft_printf.h>
@@ -27,7 +26,9 @@
 # include <limits.h>
 # include <termios.h>
 # include <sys/ioctl.h>
-
+#include <term.h>
+#include <curses.h>
+#include <fcntl.h>
 /*
 ** buf is where's hold the string written in input
 ** cur_pos means cursor position
@@ -57,6 +58,7 @@ struct	s_21sh
 	t_buf	input;
 };
 
+#define BUFF_SIZE_21SH 5
 #define ARROW_RIGHT (unsigned long long)4414235
 #define ARROW_LEFT (unsigned long long)4479771
 #define ARROW_UP (unsigned long long)4283163
@@ -80,5 +82,9 @@ void	set_terminal(void);
 t_21sh	*get_data_21sh(void);
 
 void ft_arrow_right(t_21sh *data);
+void 	print_char(t_21sh *data);
+int			my_putchar(int c);
+
+void	setdebug(void);
 
 #endif

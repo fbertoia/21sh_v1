@@ -15,4 +15,16 @@
 void ft_arrow_right(t_21sh *data)
 {
 	dprintf(data->debug_tty, "arrow_right launched\n");
+	tputs(tgoto(tgetstr("nd", NULL), 0, 0), 1, my_putchar);
 }
+
+// if (data->input.read == ARROW_UP)
+// 	tputs(tgoto(tgetstr("up", NULL), 0, 0), 1, my_putchar);
+// else if (data->input.read == ARROW_DOWN)
+// 	tputs(tgoto(tgetstr("do", NULL), 0, 0), 1, my_putchar);
+// else if (data->input.read == ARROW_LEFT)
+// 	tputs(tgoto(tgetstr("le", NULL), 0, 0), 1, my_putchar);
+// else if (data->input.read == ARROW_RIGHT)
+//
+// else
+// 	my_putchar((int)nb);

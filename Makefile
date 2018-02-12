@@ -24,7 +24,8 @@ VPATH = ./obj\
 		:./srcs/input\
 		:./includes\
 
-SRCS = sh21.c set_terminal.c get_data.c arrow_right.c
+SRCS = sh21.c set_terminal.c get_data.c arrow_right.c print_char.c my_putchar.c\
+setdebug.c
 LIB = ./libft/libft.a
 LIB_DIR = ./libft
 OBJS = $(SRCS:.c=.o)
